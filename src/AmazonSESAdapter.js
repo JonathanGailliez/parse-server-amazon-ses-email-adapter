@@ -13,7 +13,9 @@ import path from 'path';
  */
 class AmazonSESAdapter extends MailAdapter {
   constructor(options = {}) {
+    console.log("**************** Constructor before super!")
     super(options);
+    console.log("**************** Constructor after super!")
 
     const {
       accessKeyId,
@@ -44,7 +46,7 @@ class AmazonSESAdapter extends MailAdapter {
     this.ses = new AmazonSES(accessKeyId, secretAccessKey, region);
     this.fromAddress = fromAddress;
     this.templates = templates;
-
+    console.log("**************** Constructor end!")
   }
 
   /**
@@ -66,6 +68,7 @@ class AmazonSESAdapter extends MailAdapter {
       pathPlainText, pathHtml;
 
     if (options.templateName) {
+      console.log("**************** If template!")
       const {
         templateName,
         subject,
@@ -90,6 +93,7 @@ class AmazonSESAdapter extends MailAdapter {
         subject: subject || template.subject
       };
     } else {
+      console.log("**************** Else template!")
       const {
         link,
         appName,
@@ -126,6 +130,7 @@ class AmazonSESAdapter extends MailAdapter {
     }
 
     return co(function*() {
+      console.log("**************** co function!")
       let plainTextEmail, htmlEmail, compiled;
 
       // Load plain-text version
@@ -161,6 +166,7 @@ class AmazonSESAdapter extends MailAdapter {
       };
 
     }).then(payload => {
+      console.log("**************** payload!")
       return new Promise((resolve, reject) => {
         this.ses.send(payload, (error, data) => {
           console.log("**************** Sent email!"+JSON.stringify(error))
@@ -183,6 +189,7 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   sendPasswordResetEmail({link, appName, user}) {
+    console.log("**************** sendPasswordResetEmail!")
     return this._sendMail({
       link,
       appName,
@@ -200,6 +207,7 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   sendVerificationEmail({link, appName, user}) {
+    console.log("**************** sendVerificationEmail!")
     return this._sendMail({
       link,
       appName,
@@ -221,6 +229,7 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   send({templateName, subject, fromAddress, recipient, variables = {}}) {
+    console.log("**************** send!")
     return this._sendMail({
       templateName,
       subject,
@@ -236,6 +245,7 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   loadEmailTemplate(path) {
+    console.log("**************** loadEmailTemplate!")
     return new Promise((resolve, reject) => {
       fs.readFile(path, (err, data) => {
         if (err) reject(err);
