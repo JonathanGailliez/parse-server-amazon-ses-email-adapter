@@ -59,6 +59,7 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   _sendMail(options) {
+    console.log("**************** Sending email!")
     const loadEmailTemplate = this.loadEmailTemplate;
     let message = {},
       templateVars = {},
@@ -162,6 +163,8 @@ class AmazonSESAdapter extends MailAdapter {
     }).then(payload => {
       return new Promise((resolve, reject) => {
         this.ses.send(payload, (error, data) => {
+          console.log("**************** Sent email!"+JSON.stringify(error))
+          console.log("**************** Sent email!"+JSON.stringify(data))
           if (error) reject(error);
           resolve(data);
         });
