@@ -13,9 +13,7 @@ import path from 'path';
  */
 class AmazonSESAdapter extends MailAdapter {
   constructor(options = {}) {
-    console.log("**************** Constructor before super!")
     super(options);
-    console.log("**************** Constructor after super!")
 
     const {
       accessKeyId,
@@ -46,7 +44,6 @@ class AmazonSESAdapter extends MailAdapter {
     this.ses = new AmazonSES(accessKeyId, secretAccessKey, region);
     this.fromAddress = fromAddress;
     this.templates = templates;
-    console.log("**************** Constructor end!")
   }
 
   /**
@@ -61,122 +58,8 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   _sendMail(options) {
-    console.log("**************** Sending email!")
-    const loadEmailTemplate = this.loadEmailTemplate;
-    let message = {},
-      templateVars = {},
-      pathPlainText, pathHtml;
-
-    if (options.templateName) {
-      console.log("**************** If template!")
-      const {
-        templateName,
-        subject,
-        fromAddress,
-        recipient,
-        variables
-      } = options;
-      let template = this.templates[templateName];
-
-      if (!template) throw new Error(`Could not find template with name ${templateName}`);
-      if (!subject && !template.subject) throw new Error(`Cannot send email with template ${templateName} without a subject`);
-      if (!recipient) throw new Error(`Cannot send email with template ${templateName} without a recipient`);
-
-      pathPlainText = template.pathPlainText;
-      pathHtml = template.pathHtml;
-
-      templateVars = variables;
-
-      message = {
-        from: fromAddress || this.fromAddress,
-        to: recipient,
-        subject: subject || template.subject
-      };
-    } else {
-      console.log("**************** Else template!")
-      const {
-        link,
-        appName,
-        user,
-        templateConfig
-      } = options;
-      const {
-        callback
-      } = templateConfig;
-      let userVars;
-
-      if (callback && typeof callback === 'function') {
-        userVars = callback(user);
-        // If custom user variables are not packaged in an object, ignore it
-        const validUserVars = userVars && userVars.constructor && userVars.constructor.name === 'Object';
-        userVars = validUserVars ? userVars : {};
-      }
-
-      pathPlainText = templateConfig.pathPlainText;
-      pathHtml = templateConfig.pathHtml;
-
-      templateVars = Object.assign({
-        link,
-        appName,
-        username: user.get('username'),
-        email: user.get('email')
-      }, userVars);
-
-      message = {
-        from: this.fromAddress,
-        to: user.get('email'),
-        subject: templateConfig.subject
-      };
-    }
-
-    return co(function*() {
-      console.log("**************** co function!")
-      let plainTextEmail, htmlEmail, compiled;
-
-      // Load plain-text version
-      plainTextEmail = yield loadEmailTemplate(pathPlainText);
-      plainTextEmail = plainTextEmail.toString('utf8');
-
-      // Compile plain-text template
-      compiled = template(plainTextEmail, {
-        interpolate: /{{([\s\S]+?)}}/g
-      });
-      // Add processed text to the message object
-      message.text = compiled(templateVars);
-
-      // Load html version if available
-      if (pathHtml) {
-        htmlEmail = yield loadEmailTemplate(pathHtml);
-        // Compile html template
-        compiled = template(htmlEmail, {
-          interpolate: /{{([\s\S]+?)}}/g
-        });
-        // Add processed HTML to the message object
-        message.html = compiled(templateVars);
-      }
-
-      return {
-        from: message.from,
-        to: [message.to],
-        subject: message.subject,
-        body: {
-          text: message.text,
-          html: message.html,
-        },
-      };
-
-    }).then(payload => {
-      console.log("**************** payload!")
-      return new Promise((resolve, reject) => {
-        this.ses.send(payload, (error, data) => {
-          console.log("**************** Sent email!"+JSON.stringify(error))
-          console.log("**************** Sent email!"+JSON.stringify(data))
-          if (error) reject(error);
-          resolve(data);
-        });
-      });
-    }, error => {
-      console.error(error);
+    return new Promise((resolve, reject) => {
+      resolve();
     });
   }
 
@@ -189,7 +72,6 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   sendPasswordResetEmail({link, appName, user}) {
-    console.log("**************** sendPasswordResetEmail!")
     return this._sendMail({
       link,
       appName,
@@ -207,7 +89,6 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   sendVerificationEmail({link, appName, user}) {
-    console.log("**************** sendVerificationEmail!")
     return this._sendMail({
       link,
       appName,
@@ -229,7 +110,6 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   send({templateName, subject, fromAddress, recipient, variables = {}}) {
-    console.log("**************** send!")
     return this._sendMail({
       templateName,
       subject,
@@ -245,7 +125,6 @@ class AmazonSESAdapter extends MailAdapter {
    * @returns {promise}
    */
   loadEmailTemplate(path) {
-    console.log("**************** loadEmailTemplate!")
     return new Promise((resolve, reject) => {
       fs.readFile(path, (err, data) => {
         if (err) reject(err);
